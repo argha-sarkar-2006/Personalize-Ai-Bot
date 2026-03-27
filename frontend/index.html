@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Monitor Pro</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i data-lucide="shield-check"></i></div>
+                <h2>SmartMonitor</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="#" class="nav-item"><i data-lucide="users"></i> Directory</a>
+                <a href="#" class="nav-item"><i data-lucide="activity"></i> Analytics</a>
+                <a href="#" class="nav-item"><i data-lucide="settings"></i> Settings</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=3b82f6&color=fff" alt="Admin" class="avatar">
+                    <div class="user-info">
+                        <span class="user-name">Admin User</span>
+                        <span class="user-role">Superadmin</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-search">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Search employees, activities...">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn"><i data-lucide="bell"></i><span class="notification-dot"></span></button>
+                    <button class="icon-btn"><i data-lucide="moon"></i></button>
+                    <button class="icon-btn"><i data-lucide="user"></i></button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Live Overview</h1>
+                        <p class="page-subtitle">Real-time AI activity tracking & compliance monitoring.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="document.getElementById('emp-name').focus()">
+                        <i data-lucide="plus"></i> Add Employee
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon pulse-blue"><i data-lucide="users"></i></div>
+                        <div class="stat-details">
+                            <h3>Total Employees</h3>
+                            <p class="stat-value" id="total-emp-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pulse-green"><i data-lucide="activity"></i></div>
+                        <div class="stat-details">
+                            <h3>Active Now</h3>
+                            <p class="stat-value" id="active-emp-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pulse-red"><i data-lucide="alert-triangle"></i></div>
+                        <div class="stat-details">
+                            <h3>Breaches</h3>
+                            <p class="stat-value" id="breach-emp-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Panels -->
+                <div class="panels-grid">
+                    <!-- Add Employee Panel -->
+                    <div class="panel glass-panel">
+                        <div class="panel-header">
+                            <h3><i data-lucide="user-plus"></i> Register Employee</h3>
+                        </div>
+                        <form id="add-employee-form" class="modern-form">
+                            <div class="form-group">
+                                <label for="emp-name">Full Name</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="user"></i>
+                                    <input type="text" id="emp-name" placeholder="John Doe" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="emp-role">Monitoring Level</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="shield"></i>
+                                    <select id="emp-role" required>
+                                        <option value="" disabled selected>Select Role</option>
+                                        <option value="0">Role 0 - Standard (Flexible)</option>
+                                        <option value="1">Role 1 - Strict (5 Min Limit)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full">Register Employee</button>
+                        </form>
+                    </div>
+
+                    <!-- Simulator Panel -->
+                    <div class="panel glass-panel">
+                        <div class="panel-header">
+                            <h3><i data-lucide="terminal"></i> Activity Simulator</h3>
+                        </div>
+                        <form id="simulate-form" class="modern-form">
+                            <div class="form-group">
+                                <label for="sim-id">Employee ID</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="hash"></i>
+                                    <input type="number" id="sim-id" placeholder="e.g. 1" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="sim-site">Target Site / App</label>
+                                <div class="input-wrapper">
+                                    <i data-lucide="globe"></i>
+                                    <input type="text" id="sim-site" placeholder="github.com, youtube.com" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-secondary w-full">Inject Trace</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="panel glass-panel table-panel">
+                    <div class="panel-header">
+                        <h3><i data-lucide="radio"></i> Live Status Feed</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="modern-table" id="employee-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Role Details</th>
+                                    <th>Current Status</th>
+                                    <th>Idle Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-tbody">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Stunning Alert Modal -->
+    <div id="alert-overlay" class="modal-overlay hidden">
+        <div class="modal-content glass-panel breach-modal">
+            <div class="modal-icon-wrapper">
+                <div class="modal-icon pulse-red"><i data-lucide="alert-octagon"></i></div>
+            </div>
+            <h2 class="modal-title">Compliance Breach Detected</h2>
+            <div id="alert-content" class="modal-body"></div>
+            <div class="modal-actions">
+                <button class="btn btn-primary w-full" onclick="dismissAlert()">Acknowledge & Dismiss Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
