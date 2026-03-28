@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalised NLP Model</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Highlight.js for general markdown code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <!-- Marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation (Optional for layout) -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>AI Analyst</h2>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-target="upload-section">Import Data</button>
+                <button class="nav-btn" data-target="summary-section">Summary</button>
+                <button class="nav-btn" data-target="chat-section">Chatbot</button>
+                <button class="nav-btn" data-target="stats-section">Statistics</button>
+                <button class="nav-btn" data-target="mindmap-section">Mind Map</button>
+            </nav>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <header class="top-header">
+                <h1>Personalised NLP Dashboard</h1>
+                <p>Analyze and extract insights from your PDF, DOCX, and CSV files locally.</p>
+            </header>
+
+            <div class="content-area">
+                
+                <!-- 1. Enter data set / Upload -->
+                <section id="upload-section" class="panel active-panel">
+                    <h2>Dataset Upload</h2>
+                    <div class="upload-zone" id="drop-zone">
+                        <div class="upload-icon">📄</div>
+                        <p>Drag & Drop your <strong>PDF, DOCX, or CSV</strong> here</p>
+                        <p class="sub-text">or</p>
+                        <input type="file" id="file-input" accept=".pdf,.docx,.csv" hidden>
+                        <button class="btn primary-btn" onclick="document.getElementById('file-input').click()">Browse Files</button>
+                    </div>
+                    <div id="upload-status" class="status-msg mt-3" style="display: none;"></div>
+                </section>
+
+                <!-- 2. Auto generated summary -->
+                <section id="summary-section" class="panel">
+                    <div class="panel-header">
+                        <h2>Auto-Generated Summary</h2>
+                        <button class="btn secondary-btn" id="btn-generate-summary">Generate</button>
+                    </div>
+                    <div class="panel-content skeleton-loader" id="summary-content">
+                        <p class="placeholder-text">Upload a dataset and click generate to see the summary...</p>
+                    </div>
+                </section>
+
+                <!-- 3. Chatbot -->
+                <section id="chat-section" class="panel">
+                    <h2>AI Chatbot</h2>
+                    <div class="chat-container">
+                        <div class="chat-history" id="chat-history">
+                            <div class="message bot-message">
+                                <p>Hello! I have analyzed your dataset. What would you like to know?</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Ask a question about the dataset...">
+                            <button class="btn primary-btn" id="btn-send-chat">Send</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Statistics -->
+                <section id="stats-section" class="panel">
+                    <div class="panel-header">
+                        <h2>Financial Statistics</h2>
+                        <button class="btn secondary-btn" id="btn-fetch-stats">Fetch Data</button>
+                    </div>
+                    <div class="stats-grid" id="stats-content">
+                        <p class="placeholder-text">Please upload a CSV file containing numerical data to view statistics.</p>
+                    </div>
+                </section>
+
+                <!-- 5. Mind Map -->
+                <section id="mindmap-section" class="panel">
+                    <div class="panel-header">
+                        <h2>Mind Map Structure</h2>
+                        <button class="btn secondary-btn" id="btn-generate-mindmap">Extract Mind Map</button>
+                    </div>
+                    <div class="mindmap-container" id="mindmap-content">
+                        <p class="placeholder-text">Generate a mind map to visualize the hierarchical structure of your dataset.</p>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
