@@ -1,4 +1,5 @@
-# Personalised NLP Bot
+# Personalized Data Intelligence System
+
 
 A powerful, smart, and locally-hosted AI assistant that allows you to interact with your data (PDF, DOCX, and CSV) using Google Generative AI (Gemini) and LangChain. 
 
