@@ -93,8 +93,3 @@ Personalize-Ai-Bot-main/
 3. **Chatbot**: Go to the "Chatbot" tab and ask specific questions about the content of your uploaded document.
 4. **Statistics**: If you analyzed a CSV file, visit the "Statistics" tab and click "Fetch Data" to view tabular numerical insights.
 5. **Mind Map**: Use the "Mind Map" tab to extract key structural concepts as a bulleted markdown list.
-
-
-## 📝 License
-
-This project is licensed under the MIT License.
