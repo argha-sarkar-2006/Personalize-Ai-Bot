@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DocAnalyzer — Deep Document Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #09090f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #e8ff5a;
+    --accent2: #5affd5;
+    --accent3: #ff5a8a;
+    --text: #eeeef5;
+    --muted: #6b6b80;
+    --card: #13131c;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: .5;
+  }
+
+  /* ─── AMBIENT BLOBS ─── */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: .12;
+    pointer-events: none;
+    animation: drift 18s ease-in-out infinite;
+  }
+  .blob-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -200px; animation-delay: 0s; }
+  .blob-2 { width: 500px; height: 500px; background: var(--accent2); bottom: -150px; right: -150px; animation-delay: -6s; }
+  .blob-3 { width: 400px; height: 400px; background: var(--accent3); top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: -12s; }
+  @keyframes drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(40px,-30px) scale(1.05); }
+    66% { transform: translate(-30px,40px) scale(.97); }
+  }
+
+  /* ─── LAYOUT ─── */
+  .container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3.5rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .headline {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    max-width: 700px;
+    margin-bottom: 1rem;
+  }
+  .headline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .sub {
+    font-size: .82rem;
+    color: var(--muted);
+    text-align: center;
+    max-width: 440px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    letter-spacing: .02em;
+  }
+
+  /* ─── UPLOAD CARD ─── */
+  .upload-card {
+    width: 100%;
+    max-width: 540px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 2.8rem 2.4rem;
+    position: relative;
+    transition: border-color .3s;
+  }
+  .upload-card.drag-over {
+    border-color: var(--accent);
+    background: #151520;
+  }
+  .upload-card.drag-over .drop-zone {
+    border-color: var(--accent);
+  }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 14px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .3s, background .3s;
+    position: relative;
+  }
+  .drop-zone:hover {
+    border-color: var(--accent);
+    background: rgba(232,255,90,.03);
+  }
+
+  .upload-icon {
+    width: 52px; height: 52px;
+    margin: 0 auto 1.2rem;
+    background: rgba(232,255,90,.08);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .upload-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+
+  .drop-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: .4rem;
+  }
+  .drop-sub { font-size: .73rem; color: var(--muted); line-height: 1.6; }
+  .drop-sub span { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  .badges {
+    display: flex; gap: .5rem; justify-content: center; margin-top: 1.2rem; flex-wrap: wrap;
+  }
+  .badge {
+    font-size: .65rem;
+    padding: .25rem .65rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  #file-input { display: none; }
+
+  /* file name tag */
+  .file-tag {
+    display: none;
+    align-items: center;
+    gap: .7rem;
+    margin-top: 1.4rem;
+    background: rgba(90,255,213,.07);
+    border: 1px solid rgba(90,255,213,.2);
+    border-radius: 10px;
+    padding: .7rem 1rem;
+  }
+  .file-tag.visible { display: flex; }
+  .file-tag svg { width: 18px; height: 18px; stroke: var(--accent2); fill:none; stroke-width:1.8; flex-shrink:0; }
+  .file-name { font-size: .78rem; color: var(--accent2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .analyze-btn {
+    width: 100%;
+    margin-top: 1.6rem;
+    padding: 1rem 1.5rem;
+    background: var(--accent);
+    color: #09090f;
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s, transform .15s, opacity .2s;
+    opacity: .5;
+    pointer-events: none;
+  }
+  .analyze-btn.ready {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .analyze-btn.ready:hover { background: #f5ff80; transform: translateY(-1px); }
+  .analyze-btn.ready:active { transform: translateY(0); }
+
+  /* ─── PHASE SCREENS ─── */
+  .phase { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 540px; }
+  .phase.active { display: flex; }
+
+  /* ─── PHASE 2 : LOADING BAR ─── */
+  .loading-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .loading-label .spinner {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(232,255,90,.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .bar-wrap {
+    width: 100%;
+    background: var(--border);
+    border-radius: 99px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: .8rem;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    width: 0%;
+    transition: width .08s linear;
+  }
+  .bar-pct {
+    font-size: .72rem;
+    color: var(--muted);
+    align-self: flex-end;
+  }
+
+  .steps-list {
+    width: 100%;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: .8rem;
+    font-size: .75rem; color: var(--muted);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity .4s, transform .4s, color .3s;
+  }
+  .step-item.visible { opacity: 1; transform: none; }
+  .step-item.done { color: var(--accent2); }
+  .step-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background .3s;
+  }
+  .step-item.done .step-dot { background: var(--accent2); }
+  .step-item.active-step .step-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* ─── PHASE 3 : ANALYSIS TIMER ─── */
+  .analysis-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem; font-weight: 800;
+    text-align: center;
+    margin-bottom: .5rem;
+  }
+  .analysis-sub {
+    font-size: .74rem; color: var(--muted);
+    text-align: center; margin-bottom: 2.8rem;
+    line-height: 1.6;
+  }
+
+  .timer-ring-wrap {
+    position: relative;
+    width: 180px; height: 180px;
+    margin: 0 auto 2.5rem;
+  }
+  .timer-svg { transform: rotate(-90deg); }
+  .ring-bg { stroke: var(--border); }
+  .ring-fill {
+    stroke: var(--accent);
+    stroke-linecap: round;
+    transition: stroke-dashoffset .5s linear;
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  .timer-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .timer-digits {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem; font-weight: 800;
+    letter-spacing: -.04em;
+    color: var(--accent);
+  }
+  .timer-unit { font-size: .65rem; color: var(--muted); margin-top: -.1rem; }
+
+  .analysis-tasks {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .7rem;
+  }
+  .task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .9rem 1rem;
+    font-size: .72rem;
+    display: flex; align-items: flex-start; gap: .6rem;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .5s, transform .5s, border-color .3s;
+  }
+  .task-card.show { opacity: 1; transform: none; }
+  .task-card.done-card { border-color: rgba(90,255,213,.25); }
+  .task-icon { font-size: .9rem; flex-shrink: 0; margin-top: .05rem; }
+  .task-label { color: var(--muted); line-height: 1.5; }
+  .task-card.done-card .task-label { color: var(--accent2); }
+
+  .progress-text {
+    text-align: center;
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: 1.6rem;
+    line-height: 1.6;
+  }
+
+  /* ─── PHASE 4 : COMPLETE ─── */
+  .complete-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(232,255,90,.1);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 2rem;
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(232,255,90,.3); }
+    50% { box-shadow: 0 0 0 16px rgba(232,255,90,0); }
+  }
+  .complete-icon svg { width: 34px; height: 34px; stroke: var(--accent); fill: none; stroke-width: 2; }
+  .complete-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem; font-weight: 800;
+    text-align: center; margin-bottom: .5rem;
+  }
+  .complete-sub {
+    font-size: .76rem; color: var(--muted); text-align: center; margin-bottom: 2rem; line-height: 1.7;
+  }
+  .redirect-bar-wrap {
+    width: 100%; background: var(--border); border-radius: 99px; height: 4px; overflow: hidden;
+  }
+  .redirect-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 100%; animation: drain 3s linear forwards; }
+  @keyframes drain { from { width: 100%; } to { width: 0%; } }
+  .redirect-note { font-size: .68rem; color: var(--muted); text-align: center; margin-top: .7rem; }
+</style>
+</head>
+<body>
+
+<!-- Ambient -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="container">
+
+  <!-- ──── PHASE 1 : UPLOAD ──── -->
+  <div id="phase-upload" class="phase active" style="display:flex; flex-direction:column; align-items:center;">
+
+    <div class="logo"><span class="logo-dot"></span> DocAnalyzer <span class="logo-dot"></span></div>
+
+    <h1 class="headline">Drop your doc.<br/>Get <em>deep intel</em>.</h1>
+    <p class="sub">Upload any PDF or DOCX and our engine will extract, structure, and surface what matters in minutes.</p>
+
+    <div class="upload-card" id="upload-card">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        </div>
+        <div class="drop-label">Drag & drop your file here</div>
+        <div class="drop-sub">or <span onclick="event.stopPropagation(); document.getElementById('file-input').click()">browse to upload</span></div>
+        <div class="badges">
+          <span class="badge">PDF</span>
+          <span class="badge">DOCX</span>
+          <span class="badge">Max 50 MB</span>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" accept=".pdf,.doc,.docx" />
+
+      <div class="file-tag" id="file-tag">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="file-name" id="file-name">document.pdf</span>
+      </div>
+
+      <button class="analyze-btn" id="analyze-btn">Analyze Document →</button>
+    </div>
+  </div>
+
+  <!-- ──── PHASE 2 : LOADING BAR (5s) ──── -->
+  <div id="phase-loading" class="phase" style="width:100%; max-width:540px;">
+    <div class="loading-label"><div class="spinner"></div> Processing your document…</div>
+    <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
+    <div class="bar-pct" id="bar-pct">0%</div>
+    <div class="steps-list" id="steps-list">
+      <div class="step-item" data-step="0"><div class="step-dot"></div> Parsing file structure</div>
+      <div class="step-item" data-step="1"><div class="step-dot"></div> Extracting raw content</div>
+      <div class="step-item" data-step="2"><div class="step-dot"></div> Tokenizing text blocks</div>
+      <div class="step-item" data-step="3"><div class="step-dot"></div> Mapping document schema</div>
+      <div class="step-item" data-step="4"><div class="step-dot"></div> Queuing deep analysis</div>
+    </div>
+  </div>
+
+  <!-- ──── PHASE 3 : ANALYSIS TIMER (16 min) ──── -->
+  <div id="phase-analysis" class="phase" style="width:100%; max-width:540px;">
+    <div class="analysis-header">Deep Analysis Running</div>
+    <div class="analysis-sub">Our models are reading every sentence, cross-referencing<br/>data points, and building your insight report.</div>
+
+    <div class="timer-ring-wrap">
+      <svg class="timer-svg" width="180" height="180" viewBox="0 0 180 180">
+        <circle class="ring-bg" cx="90" cy="90" r="78" fill="none" stroke-width="6"/>
+        <circle class="ring-fill" id="ring-fill" cx="90" cy="90" r="78" fill="none" stroke-width="6"
+          stroke-dasharray="490" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-digits" id="timer-digits">16:00</div>
+        <div class="timer-unit">remaining</div>
+      </div>
+    </div>
+
+    <div class="analysis-tasks" id="analysis-tasks">
+      <div class="task-card" data-task="0"><span class="task-icon">🔍</span><span class="task-label">Semantic extraction</span></div>
+      <div class="task-card" data-task="1"><span class="task-icon">📊</span><span class="task-label">Data pattern detection</span></div>
+      <div class="task-card" data-task="2"><span class="task-icon">🧠</span><span class="task-label">Entity recognition</span></div>
+      <div class="task-card" data-task="3"><span class="task-icon">🔗</span><span class="task-label">Cross-reference linking</span></div>
+      <div class="task-card" data-task="4"><span class="task-icon">📝</span><span class="task-label">Summary generation</span></div>
+      <div class="task-card" data-task="5"><span class="task-icon">⚡</span><span class="task-label">Insight scoring</span></div>
+    </div>
+
+    <div class="progress-text" id="progress-text">Initializing analysis pipeline…</div>
+  </div>
+
+  <!-- ──── PHASE 4 : COMPLETE ──── -->
+  <div id="phase-complete" class="phase" style="width:100%; max-width:420px;">
+    <div class="complete-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="complete-title">Analysis Complete</div>
+    <div class="complete-sub">Your document has been fully processed.<br/>Redirecting you to your results now…</div>
+    <div class="redirect-bar-wrap"><div class="redirect-bar"></div></div>
+    <div class="redirect-note">Redirecting in 3 seconds…</div>
+  </div>
+
+</div>
+
+<script>
+/* ── helpers ── */
+const $ = id => document.getElementById(id);
+const phases = ['phase-upload','phase-loading','phase-analysis','phase-complete'];
+
+function showPhase(name) {
+  phases.forEach(p => {
+    const el = $(p);
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+  const target = $(name);
+  target.style.display = 'flex';
+  target.classList.add('active');
+}
+
+/* ── FILE UPLOAD ── */
+const fileInput = $('file-input');
+const fileTag   = $('file-tag');
+const fileName  = $('file-name');
+const analyzeBtn= $('analyze-btn');
+const dropZone  = $('drop-zone');
+const uploadCard= $('upload-card');
+
+function setFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['pdf','doc','docx'].includes(ext)) { alert('Please upload a PDF or DOCX file.'); return; }
+  fileName.textContent = file.name;
+  fileTag.classList.add('visible');
+  analyzeBtn.classList.add('ready');
+}
+
+fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); uploadCard.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => uploadCard.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadCard.classList.remove('drag-over');
+  setFile(e.dataTransfer.files[0]);
+});
+
+analyzeBtn.addEventListener('click', startLoading);
+
+/* ── PHASE 2 : 5-SEC LOADING BAR ── */
+function startLoading() {
+  showPhase('phase-loading');
+  const fill   = $('bar-fill');
+  const pct    = $('bar-pct');
+  const steps  = document.querySelectorAll('.step-item');
+  const total  = 5000; // ms
+  const start  = performance.now();
+
+  const stepTimings = [0, 800, 1800, 2900, 4000]; // when each step appears
+
+  steps.forEach(s => s.classList.remove('visible','done','active-step'));
+
+  let stepIdx = 0;
+
+  function tick(now) {
+    const elapsed = Math.min(now - start, total);
+    const progress = elapsed / total;
+    const pctVal = Math.round(progress * 100);
+
+    fill.style.width = pctVal + '%';
+    pct.textContent  = pctVal + '%';
+
+    // reveal steps
+    while (stepIdx < stepTimings.length && elapsed >= stepTimings[stepIdx]) {
+      if (stepIdx > 0) {
+        steps[stepIdx - 1].classList.remove('active-step');
+        steps[stepIdx - 1].classList.add('done');
+      }
+      steps[stepIdx].classList.add('visible', 'active-step');
+      stepIdx++;
+    }
+
+    if (elapsed < total) {
+      requestAnimationFrame(tick);
+    } else {
+      // mark all done
+      steps.forEach(s => { s.classList.add('visible','done'); s.classList.remove('active-step'); });
+      setTimeout(startAnalysis, 300);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ── PHASE 3 : 16-MIN ANALYSIS TIMER ── */
+const TOTAL_SECONDS = 16 * 60; // 960
+const CIRCUMFERENCE = 490;
+
+const progressMessages = [
+  [0, 'Initializing analysis pipeline…'],
+  [60, 'Reading document structure…'],
+  [180, 'Extracting key entities…'],
+  [300, 'Running semantic models…'],
+  [420, 'Cross-referencing data points…'],
+  [540, 'Building insight graph…'],
+  [660, 'Generating summary layers…'],
+  [780, 'Scoring and ranking findings…'],
+  [900, 'Finalizing your report…'],
+];
+
+// task card reveal schedule (seconds elapsed)
+const taskSchedule = [30, 90, 180, 300, 480, 700];
+
+function startAnalysis() {
+  showPhase('phase-analysis');
+  const ring      = $('ring-fill');
+  const digits    = $('timer-digits');
+  const progText  = $('progress-text');
+  const taskCards = document.querySelectorAll('.task-card');
+
+  taskCards.forEach(c => c.classList.remove('show','done-card'));
+
+  let secondsLeft = TOTAL_SECONDS;
+  let taskIdx = 0;
+  let msgIdx  = 0;
+
+  // show first task cards immediately
+  setTimeout(() => {
+    taskCards[0].classList.add('show');
+    taskCards[1].classList.add('show');
+  }, 400);
+
+  const interval = setInterval(() => {
+    secondsLeft--;
+    const elapsed = TOTAL_SECONDS - secondsLeft;
+
+    // update digits
+    const m = Math.floor(secondsLeft / 60);
+    const s = secondsLeft % 60;
+    digits.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    // update ring
+    const pct = secondsLeft / TOTAL_SECONDS;
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+
+    // update progress message
+    for (let i = progressMessages.length - 1; i >= 0; i--) {
+      if (elapsed >= progressMessages[i][0]) {
+        if (i !== msgIdx) { msgIdx = i; progText.textContent = progressMessages[i][1]; }
+        break;
+      }
+    }
+
+    // reveal task cards
+    while (taskIdx < taskSchedule.length && elapsed >= taskSchedule[taskIdx]) {
+      const cardToShow = taskCards[Math.min(taskIdx + 2, taskCards.length - 1)];
+      cardToShow.classList.add('show');
+      // mark the oldest visible as done
+      if (taskIdx >= 2) taskCards[taskIdx - 2].classList.add('done-card');
+      taskIdx++;
+    }
+
+    if (secondsLeft <= 0) {
+      clearInterval(interval);
+      taskCards.forEach(c => c.classList.add('show','done-card'));
+      setTimeout(showComplete, 500);
+    }
+  }, 1000);
+}
+
+/* ── PHASE 4 : COMPLETE & REDIRECT ── */
+function showComplete() {
+  showPhase('phase-complete');
+  // redirect after 3 seconds
+  setTimeout(() => {
+    window.location.href = 'frontend/components /comp2.html'; // ← change this to your target URL
+  }, 3000);
+}
+</script>
+</body>
+</html>
