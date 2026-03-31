@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview Design — NovaTech Dashboard Template</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #080b10;
+      --surface:  #0d1117;
+      --card:     #111820;
+      --card-b:   #161f2c;
+      --border:   rgba(255,255,255,0.06);
+      --border2:  rgba(99,179,255,0.14);
+      --blue:     #3b9eff;
+      --cyan:     #00d4ff;
+      --green:    #00e5a0;
+      --amber:    #ffb830;
+      --red:      #ff4d6d;
+      --purple:   #a78bfa;
+      --text:     #dde6f0;
+      --muted:    #4a5a70;
+      --dim:      #8899aa;
+      --sans:     'Syne', sans-serif;
+      --mono:     'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID LINES BG ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(59,158,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,158,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: .35;
+    }
+
+    /* ── GLOBS ── */
+    .blob { position:fixed; border-radius:50%; filter:blur(130px); pointer-events:none; z-index:0; animation: glow 7s ease-in-out infinite; }
+    .b1 { width:560px; height:560px; background:rgba(59,158,255,.055); top:-140px; left:-140px; }
+    .b2 { width:420px; height:420px; background:rgba(0,212,255,.035); bottom:-80px; right:-80px; animation-delay:3.5s; }
+    @keyframes glow { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    /* ── WRAPPER ── */
+    .wrapper { position:relative; z-index:1; max-width:1320px; margin:0 auto; padding:0 36px 100px; }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      padding: 72px 0 60px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 64px;
+      animation: fadeDown .9s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-24px)} to{opacity:1;transform:translateY(0)} }
+
+    .overline {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(59,158,255,.08);
+      border: 1px solid rgba(59,158,255,.22);
+      border-radius: 999px; padding: 5px 16px;
+      font-family: var(--mono); font-size: 10px;
+      color: var(--blue); letter-spacing: .1em;
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .overline::before {
+      content:''; width:6px; height:6px; border-radius:50%;
+      background:var(--blue); box-shadow:0 0 8px var(--blue);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .masthead h1 {
+      font-size: clamp(32px,5vw,64px);
+      font-weight: 800; letter-spacing: -.03em;
+      line-height: 1.05; color: #f0f6ff;
+      max-width: 700px;
+    }
+    .masthead h1 em { font-style: normal; color: var(--blue); }
+
+    .masthead-sub {
+      font-size: 15px; color: var(--dim);
+      margin-top: 18px; max-width: 560px;
+      line-height: 1.65; font-family: var(--mono); font-weight: 300;
+    }
+
+    .masthead-meta {
+      display: flex; gap: 40px; margin-top: 36px; flex-wrap: wrap;
+    }
+    .meta-pill {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .meta-pill .label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; font-family:var(--mono); }
+    .meta-pill .value { font-size:22px; font-weight:700; font-family:var(--mono); color:#f0f6ff; }
+
+    /* ── SECTION HEADER ── */
+    .sec {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px; margin-top: 64px;
+    }
+    .sec-num {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--blue); border: 1px solid rgba(59,158,255,.25);
+      border-radius: 4px; padding: 3px 8px;
+      letter-spacing: .08em;
+    }
+    .sec h2 {
+      font-size: 18px; font-weight: 700; color: #c8d8e8;
+      letter-spacing: -.01em;
+    }
+    .sec::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ── TOKEN GRID ── */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px; margin-bottom: 12px;
+    }
+    .token-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity .5s ease, transform .5s ease, border-color .3s;
+    }
+    .token-card.vis { opacity:1; transform:translateY(0); }
+    .token-card:hover { border-color: var(--border2); }
+    .token-card .t-label { font-size:10px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+    .token-card .t-val { font-size:13px; font-family:var(--mono); color:var(--text); }
+    .token-card .t-desc { font-size:11px; color:var(--muted); margin-top:6px; }
+
+    /* Colour swatches */
+    .color-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:12px; }
+    .swatch-card {
+      border-radius:12px; overflow:hidden;
+      border: 1px solid var(--border);
+      opacity:0; transform:translateY(14px);
+      transition: opacity .45s ease, transform .45s ease;
+    }
+    .swatch-card.vis { opacity:1; transform:translateY(0); }
+    .swatch-face { height:72px; }
+    .swatch-body { padding:12px 14px; background:var(--card); }
+    .swatch-name { font-size:12px; color:var(--text); font-weight:600; }
+    .swatch-hex  { font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:2px; }
+    .swatch-role { font-size:10px; color:var(--dim); margin-top:4px; }
+
+    /* ── LAYOUT ANATOMY ── */
+    .anatomy {
+      background: var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:32px;
+      opacity:0; transform:translateY(16px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .anatomy.vis { opacity:1; transform:translateY(0); }
+
+    .anatomy-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-top: 20px;
+    }
+
+    .zone {
+      border-radius: 10px; padding: 18px 20px;
+      border: 1px dashed rgba(255,255,255,.09);
+      position: relative;
+    }
+    .zone-label {
+      position: absolute; top:-9px; left:14px;
+      background: var(--card); padding: 0 8px;
+      font-size: 10px; font-family: var(--mono);
+      color: var(--blue); letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    .zone-desc { font-size:12px; color:var(--dim); line-height:1.6; margin-top:6px; }
+    .zone-code { font-size:11px; font-family:var(--mono); color:var(--muted); margin-top:8px; }
+
+    /* ── COMPONENT ANATOMY ── */
+    .comp-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+    }
+    .comp-card {
+      background: var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:22px;
+      opacity:0; transform:translateY(14px);
+      transition: opacity .48s ease, transform .48s ease;
+    }
+    .comp-card.vis { opacity:1; transform:translateY(0); }
+    .comp-card .c-tag { font-size:10px; font-family:var(--mono); color:var(--blue); text-transform:uppercase; letter-spacing:.09em; margin-bottom:12px; }
+    .comp-card .c-name { font-size:15px; font-weight:700; color:#e8f0fa; margin-bottom:8px; }
+    .comp-card .c-desc { font-size:12px; color:var(--dim); line-height:1.65; }
+    .comp-card .c-code {
+      margin-top: 14px; padding: 12px 14px;
+      background: rgba(0,0,0,.35); border-radius:8px;
+      font-size:11px; font-family:var(--mono); color:var(--muted);
+      border: 1px solid var(--border); white-space: pre-wrap; line-height:1.7;
+    }
+    .comp-card .c-code .kw { color: var(--blue); }
+    .comp-card .c-code .str { color: var(--green); }
+    .comp-card .c-code .val { color: var(--amber); }
+    .comp-card .c-code .prop { color: var(--purple); }
+
+    /* ── ANIMATION TIMELINE ── */
+    .anim-track {
+      background: var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:28px;
+      opacity:0; transform:translateY(14px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .anim-track.vis { opacity:1; transform:translateY(0); }
+    .anim-row {
+      display:grid; grid-template-columns:150px 1fr 60px;
+      align-items:center; gap:14px; padding:10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .anim-row:last-child { border-bottom: none; }
+    .anim-name { font-size:12px; color:var(--dim); font-family:var(--mono); }
+    .anim-bar-track { height:8px; background:rgba(255,255,255,.04); border-radius:4px; overflow:hidden; position:relative; }
+    .anim-bar {
+      height:100%; border-radius:4px;
+      width:0; transition: width 1.4s cubic-bezier(.16,1,.3,1);
+    }
+    .anim-delay { font-size:10px; font-family:var(--mono); color:var(--muted); text-align:right; }
+    .anim-head { display:grid; grid-template-columns:150px 1fr 60px; gap:14px; margin-bottom:8px; }
+    .anim-head span { font-size:10px; font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+
+    /* ── TYPOGRAPHY SPECIMEN ── */
+    .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .type-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:24px;
+      opacity:0; transform:translateY(14px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .type-card.vis { opacity:1; transform:translateY(0); }
+    .type-card .t-role { font-size:10px; font-family:var(--mono); color:var(--blue); letter-spacing:.09em; text-transform:uppercase; margin-bottom:12px; }
+    .type-card .specimen { line-height: 1.15; }
+    .type-card .meta { font-size:11px; font-family:var(--mono); color:var(--muted); margin-top:14px; }
+    .type-card .meta span { color:var(--dim); }
+
+    /* ── PATTERN CHIPS ── */
+    .pattern-wrap { display:flex; flex-wrap:wrap; gap:10px; }
+    .pchip {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:8px; padding:8px 14px;
+      font-size:12px; color:var(--dim); font-family:var(--mono);
+      opacity:0; transform:translateY(10px);
+      transition: opacity .4s ease, transform .4s ease, border-color .25s;
+      cursor:default;
+    }
+    .pchip.vis { opacity:1; transform:translateY(0); }
+    .pchip:hover { border-color:var(--border2); color:var(--text); }
+    .pchip::before {
+      content:''; width:6px; height:6px; border-radius:50%;
+      background:var(--kpc, var(--blue));
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-thumb { background:rgba(59,158,255,.18); border-radius:3px; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      .anatomy-grid, .comp-row, .type-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+
+<div class="wrapper">
+
+  <!-- ══ MASTHEAD ══ -->
+  <header class="masthead">
+    <div class="overline">Design System · Overview Template</div>
+    <h1>NovaTech <em>Dashboard</em><br>Overview Design</h1>
+    <p class="masthead-sub">
+      A complete reference of every visual, structural, and motion decision made<br>
+      in the FY 2024 Financial Dashboard — reusable as a design system template.
+    </p>
+    <div class="masthead-meta">
+      <div class="meta-pill">
+        <span class="label">Design Style</span>
+        <span class="value">Dark · Data-Dense</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">Fonts</span>
+        <span class="value">Syne + JetBrains Mono</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">Charts</span>
+        <span class="value">Chart.js 4.4</span>
+      </div>
+      <div class="meta-pill">
+        <span class="label">Components</span>
+        <span class="value">14 Sections</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ 01 · DESIGN PHILOSOPHY ══ -->
+  <div class="sec"><span class="sec-num">01</span><h2>Design Philosophy</h2></div>
+
+  <div class="token-grid" id="philosophy">
+    <div class="token-card"><div class="t-label">Aesthetic Direction</div><div class="t-val">Space-grade Dark UI</div><div class="t-desc">Evokes mission-control terminals and financial data terminals — authoritative yet modern.</div></div>
+    <div class="token-card"><div class="t-label">Information Density</div><div class="t-val">High — Always Readable</div><div class="t-desc">Every pixel carries data. No decorative filler. Whitespace is structural, not aesthetic padding.</div></div>
+    <div class="token-card"><div class="t-label">Motion Principle</div><div class="t-val">Enter Once · Linger Never</div><div class="t-desc">Animations fire on viewport entry via IntersectionObserver, then stop. No looping distractions except intentional status pulses.</div></div>
+    <div class="token-card"><div class="t-label">Depth System</div><div class="t-val">3-Layer Stacking</div><div class="t-desc">Fixed atmospheric blobs → grid noise overlay → scrollable content. Creates illusion of depth without performance cost.</div></div>
+    <div class="token-card"><div class="t-label">Color Role</div><div class="t-val">Semantic Accent Model</div><div class="t-desc">Each hue carries a fixed meaning: Blue = primary data, Green = positive/profit, Red = cost/risk, Amber = warning/projection, Purple = secondary.</div></div>
+    <div class="token-card"><div class="t-label">Font Pairing</div><div class="t-val">Display + Terminal</div><div class="t-desc">Syne (geometric, heavy) for headings and labels. JetBrains Mono for all numbers, codes, and data — maintains monospace alignment in tables.</div></div>
+  </div>
+
+  <!-- ══ 02 · COLOUR PALETTE ══ -->
+  <div class="sec"><span class="sec-num">02</span><h2>Colour Palette & Tokens</h2></div>
+
+  <div class="color-grid" id="colorsGrid">
+    <div class="swatch-card"><div class="swatch-face" style="background:#080b10"></div><div class="swatch-body"><div class="swatch-name">--bg</div><div class="swatch-hex">#080b10</div><div class="swatch-role">Page background</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#0d1117"></div><div class="swatch-body"><div class="swatch-name">--surface</div><div class="swatch-hex">#0d1117</div><div class="swatch-role">Secondary surface</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#111820"></div><div class="swatch-body"><div class="swatch-name">--card</div><div class="swatch-hex">#111820</div><div class="swatch-role">Card & panel</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#161f2c"></div><div class="swatch-body"><div class="swatch-name">--card-b</div><div class="swatch-hex">#161f2c</div><div class="swatch-role">Nested card bg</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#3b9eff"></div><div class="swatch-body"><div class="swatch-name">--blue</div><div class="swatch-hex">#3b9eff</div><div class="swatch-role">Primary accent · revenue</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#00d4ff"></div><div class="swatch-body"><div class="swatch-name">--cyan</div><div class="swatch-hex">#00d4ff</div><div class="swatch-role">Secondary data series</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#00e5a0"></div><div class="swatch-body"><div class="swatch-name">--green</div><div class="swatch-hex">#00e5a0</div><div class="swatch-role">Profit · positive · up</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#ffb830"></div><div class="swatch-body"><div class="swatch-name">--amber</div><div class="swatch-hex">#ffb830</div><div class="swatch-role">Projection · warning</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#ff4d6d"></div><div class="swatch-body"><div class="swatch-name">--red</div><div class="swatch-hex">#ff4d6d</div><div class="swatch-role">Cost · risk · negative</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#a78bfa"></div><div class="swatch-body"><div class="swatch-name">--purple</div><div class="swatch-hex">#a78bfa</div><div class="swatch-role">Tertiary · Pro Services</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#dde6f0"></div><div class="swatch-body"><div class="swatch-name">--text</div><div class="swatch-hex">#dde6f0</div><div class="swatch-role">Primary body text</div></div></div>
+    <div class="swatch-card"><div class="swatch-face" style="background:#8899aa"></div><div class="swatch-body"><div class="swatch-name">--dim</div><div class="swatch-hex">#8899aa</div><div class="swatch-role">Secondary / dim text</div></div></div>
+  </div>
+
+  <!-- ══ 03 · TYPOGRAPHY ══ -->
+  <div class="sec"><span class="sec-num">03</span><h2>Typography System</h2></div>
+
+  <div class="type-grid" id="typeGrid">
+    <div class="type-card">
+      <div class="t-role">Display Heading — Syne 800</div>
+      <div class="specimen" style="font-family:'Syne',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.03em;color:#f0f6ff;line-height:1.05;">
+        NovaTech<br><span style="color:#3b9eff">Solutions</span>
+      </div>
+      <div class="meta">font-family: <span>Syne</span> · weight: <span>800</span> · size: <span>clamp(28px,4vw,48px)</span><br>letter-spacing: <span>-0.02em</span> · color: <span>#f0f6ff</span></div>
+    </div>
+    <div class="type-card">
+      <div class="t-role">KPI Value — JetBrains Mono 700</div>
+      <div class="specimen" style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;letter-spacing:-.02em;color:#f0f6ff;">
+        ₹487.3 Cr
+      </div>
+      <div class="meta">font-family: <span>JetBrains Mono</span> · weight: <span>700</span> · size: <span>28px</span><br>Used for all numeric KPI values, financial figures, EPS.</div>
+    </div>
+    <div class="type-card">
+      <div class="t-role">Section Label — Syne 600</div>
+      <div class="specimen" style="font-family:'Syne',sans-serif;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4a5a70;">
+        Key Performance Indicators
+      </div>
+      <div class="meta">font-size: <span>11px</span> · letter-spacing: <span>0.1em</span><br>text-transform: <span>uppercase</span> · color: <span>--muted</span></div>
+    </div>
+    <div class="type-card">
+      <div class="t-role">Mono Badge / Tag — JetBrains Mono 400</div>
+      <div class="specimen" style="display:inline-flex;align-items:center;gap:8px;background:rgba(59,158,255,.1);border:1px solid rgba(59,158,255,.25);border-radius:999px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#3b9eff;letter-spacing:.06em;margin-top:4px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#3b9eff;display:block;"></span>
+        CONFIDENTIAL INTERNAL REPORT · FY 2024
+      </div>
+      <div class="meta">Pill badge: mono, 11px, pill border-radius 999px<br>Used for status badges and classification labels.</div>
+    </div>
+  </div>
+
+  <!-- ══ 04 · LAYOUT ANATOMY ══ -->
+  <div class="sec"><span class="sec-num">04</span><h2>Layout Anatomy</h2></div>
+
+  <div class="anatomy" id="anatomyCard">
+    <div style="font-size:13px;color:var(--dim);line-height:1.7;">
+      The layout uses a <strong style="color:var(--text)">single centered wrapper</strong> (max-width 1400px, 32px side padding) with a
+      strict <strong style="color:var(--text)">section-then-grid</strong> rhythm. Every section begins with a label row, followed by one of
+      three grid systems depending on content complexity.
+    </div>
+    <div class="anatomy-grid">
+      <div class="zone">
+        <span class="zone-label">Full Width</span>
+        <div class="zone-desc">Single-column card spanning the full content width. Used for primary trend charts (5-year revenue) and complex tables where horizontal scan matters.</div>
+        <div class="zone-code">.chart-full → width: 100%</div>
+      </div>
+      <div class="zone">
+        <span class="zone-label">2 : 1 Split</span>
+        <div class="zone-desc">Primary chart on the left (2fr) paired with a donut / stat card on the right (1fr). Used for Quarterly + Segment Revenue section.</div>
+        <div class="zone-code">.charts-row → grid: 2fr 1fr; gap: 20px</div>
+      </div>
+      <div class="zone">
+        <span class="zone-label">50 / 50 Split</span>
+        <div class="zone-desc">Equal-weight columns. Used for P&L Waterfall + Geography, Risk chart + Table, Milestones + Radar chart.</div>
+        <div class="zone-code">.chart-half → grid: 1fr 1fr; gap: 20px</div>
+      </div>
+      <div class="zone">
+        <span class="zone-label">KPI Auto-Grid</span>
+        <div class="zone-desc">8 KPI cards in a responsive auto-fit grid. Minimum card width 190px — naturally flows from 4 columns to 2 on smaller screens.</div>
+        <div class="zone-code">.kpi-grid → repeat(auto-fit, minmax(190px,1fr))</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 05 · COMPONENT PATTERNS ══ -->
+  <div class="sec"><span class="sec-num">05</span><h2>Component Patterns</h2></div>
+
+  <div class="comp-row" id="compRow">
+    <div class="comp-card">
+      <div class="c-tag">Component 01</div>
+      <div class="c-name">KPI Card</div>
+      <div class="c-desc">Shows a single metric with animated counter, YoY change chip, icon, and colour-coded top border + glow via <code>--kpi-color</code> CSS variable.</div>
+      <div class="c-code"><span class="kw">--kpi-color</span>: <span class="val">#3b9eff</span>;
+<span class="prop">::before</span> → 1px top gradient
+<span class="prop">::after</span>  → corner radial glow
+<span class="kw">data-val</span>  → animated counter target
+hover: translateY(-3px) + shadow</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Component 02</div>
+      <div class="c-name">Chart Card (.c-card)</div>
+      <div class="c-desc">Universal chart container. Starts invisible (opacity 0, translateY 16px), reveals on IntersectionObserver with .visible class. Hover tints border to --border2.</div>
+      <div class="c-code"><span class="kw">opacity</span>: <span class="val">0</span> → <span class="val">1</span>  (on .visible)
+<span class="kw">transform</span>: <span class="str">translateY(16px)</span> → <span class="str">0</span>
+<span class="kw">transition</span>: <span class="val">.5s</span> ease
+<span class="prop">transitionDelay</span>: i%4 × 70ms</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Component 03</div>
+      <div class="c-name">Animated Bar</div>
+      <div class="c-desc">Horizontal progress bar with <code>data-pct</code> attribute. Width animates from 0% to target on IntersectionObserver. Staggered with i × 100–120ms delays.</div>
+      <div class="c-code"><span class="kw">.bar-fill</span> { <span class="prop">width</span>: <span class="val">0</span> }
+IO fires → <span class="prop">width</span>: <span class="str">data-pct + '%'</span>
+<span class="kw">transition</span>: <span class="val">1.2s</span> cubic-bezier
+  (<span class="val">.16,1,.3,1</span>) ← spring ease</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Component 04</div>
+      <div class="c-name">Animated Counter</div>
+      <div class="c-desc">JS <code>animateValue()</code> counts from 0 to target using requestAnimationFrame with ease-out quartic. Fires per KPI card via dedicated IntersectionObserver at 30% threshold.</div>
+      <div class="c-code"><span class="kw">ease</span> = <span class="val">1</span> - (<span class="val">1</span>-t)^<span class="val">4</span>
+current = target × ease
+<span class="prop">duration</span>: <span class="val">1400</span>ms (KPI) /
+           <span class="val">2000</span>ms (header)</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Component 05</div>
+      <div class="c-name">Risk Chip</div>
+      <div class="c-desc">Inline status pill with three states: HIGH (red tint), MED (amber tint), LOW (green tint). Built with a single class swap — no JS needed.</div>
+      <div class="c-code"><span class="kw">.risk-H</span> → rgba(255,77,109,.15)
+<span class="kw">.risk-M</span> → rgba(255,184,48,.1)
+<span class="kw">.risk-L</span> → rgba(0,229,160,.1)
+font: JetBrains Mono 500 10px</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Component 06</div>
+      <div class="c-name">Section Title Divider</div>
+      <div class="c-desc">Flexbox row: uppercase 11px label on the left, auto-stretching 1px horizontal rule on the right via <code>::after</code> pseudo-element. No extra markup.</div>
+      <div class="c-code"><span class="kw">.sec-title</span> { <span class="prop">display</span>: <span class="val">flex</span> }
+<span class="prop">::after</span> {
+  <span class="kw">flex</span>: <span class="val">1</span>;
+  <span class="kw">height</span>: <span class="val">1px</span>;
+  <span class="kw">background</span>: <span class="str">--border</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- ══ 06 · BACKGROUND LAYERS ══ -->
+  <div class="sec"><span class="sec-num">06</span><h2>Background & Atmosphere Layers</h2></div>
+
+  <div class="token-grid" id="bgLayers">
+    <div class="token-card">
+      <div class="t-label">Layer 1 · Base</div>
+      <div class="t-val">--bg: #080b10</div>
+      <div class="t-desc">Near-black with a faint blue-grey tint. Not pure black — avoids harsh contrast; easier on eyes in dark mode.</div>
+    </div>
+    <div class="token-card">
+      <div class="t-label">Layer 2 · Grid Lines</div>
+      <div class="t-val">body::after</div>
+      <div class="t-desc">Fixed 48×48px grid via repeating linear-gradient at 3% opacity. Gives the "data terminal" feel without heavy performance cost.</div>
+    </div>
+    <div class="token-card">
+      <div class="t-label">Layer 3 · Noise Texture</div>
+      <div class="t-val">body::before (SVG feTurbulence)</div>
+      <div class="t-desc">Inline SVG fractalNoise filter at 0.03 opacity. Eliminates the "flat digital" look, mimics analogue screen grain.</div>
+    </div>
+    <div class="token-card">
+      <div class="t-label">Layer 4 · Glow Blobs</div>
+      <div class="t-val">.blob1 / .blob2</div>
+      <div class="t-desc">Two radial blobs (500px, 400px) with 120px Gaussian blur. Top-left blue, bottom-right cyan. Animate opacity 0.5↔1 over 6–7s. Position: fixed so they don't scroll.</div>
+    </div>
+    <div class="token-card">
+      <div class="t-label">Layer 5 · Cards</div>
+      <div class="t-val">--card: #111820</div>
+      <div class="t-desc">Raised 3px above background. Cards use 1px solid border at 6% white opacity. Hover state shifts border to 12% blue-tinted rgba.</div>
+    </div>
+    <div class="token-card">
+      <div class="t-label">Layer 6 · Content</div>
+      <div class="t-val">z-index: 1</div>
+      <div class="t-desc">All scrollable content in .wrapper sits at z-index:1 above the fixed atmosphere layers. Chart tooltips and active states render above via Chart.js internal z management.</div>
+    </div>
+  </div>
+
+  <!-- ══ 07 · CHART CONFIGURATION ══ -->
+  <div class="sec"><span class="sec-num">07</span><h2>Chart.js Configuration Patterns</h2></div>
+
+  <div class="comp-row" id="chartRow">
+    <div class="comp-card">
+      <div class="c-tag">Pattern 01</div>
+      <div class="c-name">Global Defaults</div>
+      <div class="c-desc">Set once before any Chart() call. Overrides Chart.js defaults to match dark theme — avoids repeating tooltip/grid config in every chart.</div>
+      <div class="c-code"><span class="kw">Chart.defaults.color</span>
+  = <span class="str">'#4a5a70'</span>
+<span class="kw">Chart.defaults.font.family</span>
+  = <span class="str">"'Syne',sans-serif"</span></div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Pattern 02</div>
+      <div class="c-name">baseOpts() Factory</div>
+      <div class="c-desc">A shared options object factory returning consistent tooltip, grid, tick styling, and animation config. Each chart spreads baseOpts() then overrides only what it needs.</div>
+      <div class="c-code"><span class="kw">function</span> <span class="prop">baseOpts</span>(extra={}) {
+  <span class="kw">return</span> {
+    <span class="prop">plugins</span>: { tooltip: ... },
+    <span class="prop">scales</span>: { x:…, y:… },
+    <span class="prop">animation</span>: { duration:<span class="val">1400</span> },
+    ...extra }
+}</div>
+    </div>
+    <div class="comp-card">
+      <div class="c-tag">Pattern 03</div>
+      <div class="c-name">Dual Y-Axis</div>
+      <div class="c-desc">Projection chart uses yAxisID: 'y' for ₹ values and yAxisID: 'y2' (right-positioned) for EBITDA %. Right axis ticks coloured amber to match the dataset line.</div>
+      <div class="c-code"><span class="prop">y2</span>: {
+  <span class="kw">position</span>: <span class="str">'right'</span>,
+  <span class="kw">grid</span>: { <span class="prop">display</span>: <span class="val">false</span> },
+  <span class="kw">ticks</span>: { color: <span class="val">AMBER</span> },
+  <span class="kw">min</span>: <span class="val">20</span>, <span class="kw">max</span>: <span class="val">30</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- ══ 08 · ANIMATION TIMING ══ -->
+  <div class="sec"><span class="sec-num">08</span><h2>Animation & Motion Timing</h2></div>
+
+  <div class="anim-track" id="animTrack">
+    <div class="anim-head">
+      <span>Element</span><span>Relative Timeline (0 → 2000ms)</span><span>Delay</span>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Header slide-down</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--blue)" data-w="40"></div></div>
+      <div class="anim-delay">0ms</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Header revenue counter</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--green)" data-w="100"></div></div>
+      <div class="anim-delay">400ms</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">KPI card reveal</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--cyan)" data-w="70"></div></div>
+      <div class="anim-delay">i×70ms</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">KPI counter (on scroll)</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--amber)" data-w="70"></div></div>
+      <div class="anim-delay">on IO</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Chart.js charts</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--purple)" data-w="70"></div></div>
+      <div class="anim-delay">1400ms dur</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Bar fills (geo/hr)</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--green)" data-w="60"></div></div>
+      <div class="anim-delay">i×100ms</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Blob glow pulse</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--blue);opacity:.5" data-w="100"></div></div>
+      <div class="anim-delay">∞ 6–7s</div>
+    </div>
+    <div class="anim-row">
+      <div class="anim-name">Badge dot pulse</div>
+      <div class="anim-bar-track"><div class="anim-bar" style="background:var(--blue);opacity:.5" data-w="100"></div></div>
+      <div class="anim-delay">∞ 2s</div>
+    </div>
+  </div>
+
+  <!-- ══ 09 · INTERACTION STATES ══ -->
+  <div class="sec"><span class="sec-num">09</span><h2>Interaction & State Patterns</h2></div>
+
+  <div class="pattern-wrap" id="patterns">
+    <div class="pchip" style="--kpc:var(--blue)">Hover: card translateY(-3px)</div>
+    <div class="pchip" style="--kpc:var(--blue)">Hover: border → --border2</div>
+    <div class="pchip" style="--kpc:var(--green)">Table row: blue 4% tint on hover</div>
+    <div class="pchip" style="--kpc:var(--cyan)">KPI: box-shadow on hover</div>
+    <div class="pchip" style="--kpc:var(--amber)">Chart tooltip: dark card #111820</div>
+    <div class="pchip" style="--kpc:var(--amber)">Tooltip border: rgba(59,158,255,.2)</div>
+    <div class="pchip" style="--kpc:var(--purple)">Donut segment: hoverOffset 8px</div>
+    <div class="pchip" style="--kpc:var(--red)">Scroll: custom scrollbar 5px blue</div>
+    <div class="pchip" style="--kpc:var(--green)">IO reveal: .visible class toggle</div>
+    <div class="pchip" style="--kpc:var(--blue)">Card: transition-delay stagger</div>
+    <div class="pchip" style="--kpc:var(--cyan)">Radar: fillArea opacity .08–.1</div>
+    <div class="pchip" style="--kpc:var(--amber)">Risk bubble: r = risk score size</div>
+  </div>
+
+  <!-- ══ 10 · DATA-DRIVEN PATTERNS ══ -->
+  <div class="sec"><span class="sec-num">10</span><h2>Data-Driven Rendering Patterns</h2></div>
+
+  <div class="token-grid" id="ddPatterns">
+    <div class="token-card"><div class="t-label">data-val / data-prefix / data-suffix</div><div class="t-val">HTML data-attributes on .kpi</div><div class="t-desc">KPI counter target, currency prefix (₹), and unit suffix (Cr, %, pts) are stored as HTML data attributes — JS reads them without touching source data arrays.</div></div>
+    <div class="token-card"><div class="t-label">innerHTML injection loops</div><div class="t-val">forEach → innerHTML +=</div><div class="t-desc">Geography bars, HR bars, D&I cards, vertical table rows, segment legend, and timeline items are all built from JS arrays with template literal injection. Zero DOM libraries needed.</div></div>
+    <div class="token-card"><div class="t-label">--kpi-color CSS variable</div><div class="t-val">Per-card colour theming</div><div class="t-desc">Each KPI card sets --kpi-color inline. The ::before and ::after pseudo-elements consume it, so border, top line, and corner glow all update with one variable.</div></div>
+    <div class="token-card"><div class="t-label">data-pct on .bar-fill</div><div class="t-val">Bar width from attribute</div><div class="t-desc">All progress bars start at width:0 via CSS. IntersectionObserver reads data-pct and sets width to trigger the transition. Staggered via setTimeout(i × delay).</div></div>
+    <div class="token-card"><div class="t-label">Semantic colour logic</div><div class="t-val">attrition > 15 → RED else GREEN</div><div class="t-desc">HR bar attrition badge colour is conditionally assigned: red if >15%, green otherwise. All sentiment-coded displays use inline ternary expressions, not CSS classes.</div></div>
+    <div class="token-card"><div class="t-label">Shared IntersectionObserver</div><div class="t-val">barObs reused across sections</div><div class="t-desc">A single barObs instance is registered for geography, vertical table, HR, and D&I sections. Avoids creating separate observers for each section — one IO handles all bar reveals.</div></div>
+  </div>
+
+  <!-- ══ 11 · RESPONSIVE STRATEGY ══ -->
+  <div class="sec"><span class="sec-num">11</span><h2>Responsive Strategy</h2></div>
+
+  <div class="token-grid" id="responsive">
+    <div class="token-card"><div class="t-label">Breakpoint</div><div class="t-val">@media max-width: 900px</div><div class="t-desc">Single breakpoint only. Below 900px, all multi-column grids (.charts-row, .chart-thirds, .chart-half) collapse to single column. KPI grid is auto-fit — wraps naturally.</div></div>
+    <div class="token-card"><div class="t-label">Header</div><div class="t-val">flex-direction: column</div><div class="t-desc">Header flips from row (title left, revenue right) to column stacked. Revenue block switches text-align from right to left. Gap of 16px between sections.</div></div>
+    <div class="token-card"><div class="t-label">Typography</div><div class="t-val">clamp() for fluid type</div><div class="t-desc">Main h1 uses clamp(28px, 4vw, 48px) — scales from 28px on mobile to 48px on wide screen. KPI values use fixed 28px (already compact).</div></div>
+    <div class="token-card"><div class="t-label">Charts</div><div class="t-val">responsive: true (Chart.js default)</div><div class="t-desc">All Chart.js canvases have responsive:true so they resize with their container. The donut chart uses fixed width (160px canvas) — wrapped in flexbox that reflows.</div></div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  /* ── IntersectionObserver: reveal all .token-card, .swatch-card, .comp-card, .type-card, .pchip ── */
+  const reveal = new IntersectionObserver((entries) => {
+    entries.forEach((e, idx) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('vis'), (Array.from(e.target.parentElement?.children || []).indexOf(e.target)) * 60);
+        reveal.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.token-card,.swatch-card,.comp-card,.type-card,.pchip,.anatomy,.anim-track')
+    .forEach(el => reveal.observe(el));
+
+  /* ── Animate bar widths in animation track ── */
+  const animIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.anim-bar').forEach((b, i) => {
+          setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 100);
+        });
+        animIO.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  const at = document.getElementById('animTrack');
+  if (at) animIO.observe(at);
+</script>
+</body>
+</html>
